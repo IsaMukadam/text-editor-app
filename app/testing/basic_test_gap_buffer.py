@@ -103,10 +103,10 @@ class BasicGapBufferFuncTests():
 if __name__ == "__main__":
 
     # Testing the basic gapbuffer functionality
-    basic_gapbuffer = BasicGapBufferFuncTests()
-    basic_gapbuffer.test_init()
-    basic_gapbuffer.test_resize()
-    basic_gapbuffer.test_insert()
-    basic_gapbuffer.test_get_text()
-    basic_gapbuffer.test_delete()
-    basic_gapbuffer.test_move_cursor()
+    basic_gapbuffer_tests = BasicGapBufferFuncTests()
+    basic_gapbuffer_tests.test_init()
+    basic_gapbuffer_tests.test_resize()
+    basic_gapbuffer_tests.test_insert()
+    basic_gapbuffer_tests.test_get_text()
+    basic_gapbuffer_tests.test_delete()
+    basic_gapbuffer_tests.test_move_cursor()

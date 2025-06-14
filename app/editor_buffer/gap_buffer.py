@@ -85,24 +85,28 @@ class GapBuffer:
         Raises:
             ValueError: If position is out of bounds.
         """
+        # Ensure the new cursor position is within valid bounds (0 to size inclusive)
         if not 0 <= position <= self.size:
             raise ValueError("Cursor position out of bounds")
-        
-        if position < self.gap_start:
-            # Move gap left
-            while self.gap_start > position:
-                self.gap_start -= 1
-                self.gap_end -= 1
-                self.buffer[self.gap_end] = self.buffer[self.gap_start]
-                self.buffer[self.gap_start] = ''
 
+        # Case 1: Move the gap to the left (cursor is before current gap start)
+        if position < self.gap_start:
+            # Shift characters from before the gap into the gap space, one by one
+            while self.gap_start > position:
+                self.gap_start -= 1               # Move gap_start one step left
+                self.gap_end -= 1                 # Move gap_end one step left
+                self.buffer[self.gap_end] = self.buffer[self.gap_start]  # Copy char to the right side
+                self.buffer[self.gap_start] = ''  # Clear original position
+
+        # Case 2: Move the gap to the right (cursor is after current gap start)
         elif position > self.gap_start:
-            # Move gap right
+            # Shift characters from after the gap into the gap space, one by one
             while self.gap_start < position:
-                self.buffer[self.gap_start] = self.buffer[self.gap_end]
-                self.buffer[self.gap_end] = ''
-                self.gap_start += 1
-                self.gap_end += 1
+                self.buffer[self.gap_start] = self.buffer[self.gap_end]  # Copy char from right into left
+                self.buffer[self.gap_end] = ''      # Clear original right-side char
+                self.gap_start += 1                 # Move gap_start one step right
+                self.gap_end += 1                   # Move gap_end one step right
+
 
 
     def delete(self, count: int = 1) -> None:
@@ -139,7 +143,7 @@ class GapBuffer:
         if not (0 <= start <= end <= self.size):
             raise ValueError("Invalid selection range")
         
-        self.select_start = start
+        self.selection_start = start
         self.selection_end = end
 
     def get_selection(self) -> str:
@@ -162,16 +166,23 @@ class GapBuffer:
         Returns:
             None
         """
+         # If no selection is active, do nothing and return
         if self.selection_start is None or self.selection_end is None:
             return
-        
+
+        # Move the gap to the beginning of the selection range
         self.move_cursor(self.selection_start)
+
+        # Calculate how many characters are in the selection
         count = self.selection_end - self.selection_start
+
+        # For each character in the selection, move the gap_end pointer forward,
+        # and overwrite characters with empty strings (effectively deleting them)
         for _ in range(count):
             if self.gap_end < self.size:
-                self.buffer[self.gap_end] = ''
-                self.gap_end += 1
+                self.buffer[self.gap_end] = ''  # Clear the character after the gap
+                self.gap_end += 1              # Expand the gap forward
 
-        # Clear selection
+        # Clear the selection markers since it's been deleted
         self.selection_start = None
         self.selection_end = None
