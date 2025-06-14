@@ -1,3 +1,4 @@
+# GapBuffer Class: @IsaMukadam
 class GapBuffer:
     """
     A gap buffer data structure used for efficient text editing operations.
@@ -13,12 +14,17 @@ class GapBuffer:
         Args:
             initial_size (int): Intial size of the underlying buffer.
         """
+        # Basic functionality:
         self.buffer = [''] * initial_size
         self.gap_start = 0
         self.gap_end = initial_size
         self.size = initial_size
+        # Selection functionality
         self.selection_start = None
         self.selection_end = None
+        # Unde/Redo functionality:
+        self.undo_stack = []
+        self.redo_stack = []
 
     ########################## BASIC GAPBUFFER FUNCTIONALITY ###########################
 
@@ -127,7 +133,7 @@ class GapBuffer:
             self.buffer[self.gap_end] = ''
             self.gap_end += 1
 
-    ########################## EXTENDED GAPBUFFER FUNCTIONALITY ###########################
+    ########################## SELECTION GAPBUFFER FUNCTIONALITY ###########################
 
     def select(self, start: int, end: int) -> None:
         """
@@ -186,3 +192,32 @@ class GapBuffer:
         # Clear the selection markers since it's been deleted
         self.selection_start = None
         self.selection_end = None
+
+
+    ########################## UNDO/REDO GAPBUFFER FUNCTIONALITY ###########################
+    def record_state(self):
+        """
+        Save the current state of the buffer for undo purposes.
+        This includes the buffer content, gap positions, and size.
+        """
+        state = {
+            "buffer": self.buffer.copy(),
+            "gap_start": self.gap_start,
+            "gap_end": self.gap_end,
+            "size": self.size,
+            "selection_start": self.selection_start,
+            "selection_end": self.selection_end
+        }
+        self.undo_stack.append(state)
+        self.redo_stack.clear()
+        
+    def undo(self):
+        """
+        Undo the last change by restoring the buffer to the previous state.
+
+        The current state is saved onto the redo stack to allow redo.
+        If there is no state to undo, this method does nothing.
+        Selection is clear after undo.
+        """
+        # Continue here
+        
