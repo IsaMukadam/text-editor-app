@@ -195,29 +195,73 @@ class GapBuffer:
 
 
     ########################## UNDO/REDO GAPBUFFER FUNCTIONALITY ###########################
-    def record_state(self):
+
+    def _get_state_snapshot(self):
         """
-        Save the current state of the buffer for undo purposes.
-        This includes the buffer content, gap positions, and size.
+        Creates a snapshot (deep copy) of the current buffer state.
+        This includes the buffer content, gap positions, and selection.
         """
-        state = {
-            "buffer": self.buffer.copy(),
+        return {
+            "buffer": self.buffer[:], # Copy the list to avoid shared reference
             "gap_start": self.gap_start,
             "gap_end": self.gap_end,
             "size": self.size,
             "selection_start": self.selection_start,
-            "selection_end": self.selection_end
-        }
+            "selection_end": self.selection_end,
+        }    
+
+
+    def _restore_state(self, state):
+        """
+        Restore the buffer to a previously recorded state.
+        All fields are overwritten to match the saved snapshot.
+        """
+        self.buffer = state["buffer"][:] # Copy to avoid shared reference
+        self.gap_start = state["gap_start"]
+        self.gap_end = state["gap_end"]
+        self.size = state["size"]
+        self.selection_start = state["selection_start"]
+        self.selection_end = state["selection_end"]
+
+
+    def record_state(self):
+        """
+        Record the current state of the buffer before making a change.
+        This is used to support undo operations.
+        """
+        state = self._get_state_snapshot()
         self.undo_stack.append(state)
-        self.redo_stack.clear()
-        
+        self.redo_stack.clear() # Once a new change is made, redo history is no longer valid
+
+
     def undo(self):
         """
-        Undo the last change by restoring the buffer to the previous state.
-
-        The current state is saved onto the redo stack to allow redo.
-        If there is no state to undo, this method does nothing.
-        Selection is clear after undo.
+        Undo the last recorded operation by restoring the most recent state
+        from the undo stack. The current state is saved in the redo stack
+        so it can be reapplied later.
         """
-        # Continue here
+        if not self.undo_stack:
+            return # No previous state to revert to
         
+        # Save current state in redo stack before restoring
+        self.redo_stack.append(self._get_state_snapshot())
+
+        # Pop and restore the last state from undo stack
+        previous_state = self.undo_stack.pop()
+        self._restore_state(previous_state)
+        
+
+    def redo(self):
+        """
+        Redo the last undone operation by restoring the most recent state
+        from the redo stack. The current state is saved in the undo stack.
+        """
+        if not self.redo_stack:
+            return # No state to redo
+        
+        # Save the current state in undo stack before restoring
+        self.undo_stack.append(self._get_state_snapshot())
+
+        # Pop and restore the last state from redo stack
+        next_state = self.redo_stack.pop()
+        self._restore_state(next_state)
