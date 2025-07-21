@@ -64,6 +64,8 @@ class GapBuffer:
         Returns:
             None
         """
+        self.record_state()
+
         for char in text:
             if self.gap_start == self.gap_end:
                 self.resize(len(self.buffer) * 2)
@@ -80,6 +82,9 @@ class GapBuffer:
         """
         return ''.join(self.buffer[:self.gap_start] + self.buffer[self.gap_end:])
     
+    def get_cursor_limit(self) -> int:
+        """Returns the valid range of cursor movement (i.e., text length)."""
+        return self.gap_start + (len(self.buffer) - self.gap_end)
 
     def move_cursor(self, position: int) -> None:
         """
@@ -92,8 +97,11 @@ class GapBuffer:
             ValueError: If position is out of bounds.
         """
         # Ensure the new cursor position is within valid bounds (0 to size inclusive)
-        if not 0 <= position <= self.size:
+        if not 0 <= position <= self.get_cursor_limit():
             raise ValueError("Cursor position out of bounds")
+        
+        # Assuming it is within bounds record the state
+        self.record_state()
 
         # Case 1: Move the gap to the left (cursor is before current gap start)
         if position < self.gap_start:
@@ -125,6 +133,8 @@ class GapBuffer:
         Raises:
             ValueError: If trying to delete more characters than available
         """
+        self.record_state()
+        
         available = len(self.buffer) - self.gap_end
         if count < 0 or count > available:
             raise ValueError("Invalid delete count")
@@ -146,6 +156,8 @@ class GapBuffer:
         Raises:
             ValueError: If selection range is invalid.
         """
+        self.record_state()
+
         if not (0 <= start <= end <= self.size):
             raise ValueError("Invalid selection range")
         
@@ -163,7 +175,7 @@ class GapBuffer:
             return ''
         
         text = self.get_text()
-        return text[self.select_start:self.selection_end]
+        return text[self.selection_start:self.selection_end]
     
     def delete_selection(self) -> None:
         """
@@ -175,6 +187,9 @@ class GapBuffer:
          # If no selection is active, do nothing and return
         if self.selection_start is None or self.selection_end is None:
             return
+        
+        # Recording the state assuming something has been selected for deletion
+        self.record_state()
 
         # Move the gap to the beginning of the selection range
         self.move_cursor(self.selection_start)
