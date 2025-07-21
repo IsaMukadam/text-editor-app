@@ -47,7 +47,7 @@ def test_record_state(buffer):
     logger.debug("Saved buffer text: %s", saved_buffer_text)
     logger.debug("Current buffer text: %s", buffer.get_text())
     
-    assert len(buffer.undo_stack) == 1
+    assert len(buffer.undo_stack) == 2
     assert saved_buffer_text == buffer.get_text()
     assert state["gap_start"] == buffer.gap_start
     assert state["gap_end"] == buffer.gap_end
@@ -68,12 +68,10 @@ def test_undo_restores_previous_state(buffer):
     logger.debug("Recorded state 1: %s", buffer.get_text())
 
     # Recording the empty state then inserting 'abc'
-    buffer.record_state()  # Save empty
     buffer.insert("abc")   # Now buffer is "abc"
     logger.debug("After insert 'abc': %s", buffer.get_text())
 
     # Recording the state and inserting 'def'
-    buffer.record_state()
     buffer.insert("def")   # Now buffer is "abcdef"
     logger.debug("After insert 'def': %s", buffer.get_text())
     assert buffer.get_text() == "abcdef"

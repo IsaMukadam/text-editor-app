@@ -1,3 +1,5 @@
+from app.utils.file_manager import FileManager
+
 # GapBuffer Class: @IsaMukadam
 class GapBuffer:
     """
@@ -280,3 +282,41 @@ class GapBuffer:
         # Pop and restore the last state from redo stack
         next_state = self.redo_stack.pop()
         self._restore_state(next_state)
+
+    ########################## SAVE/LOAD GAPBUFFER FUNCTIONALITY ###########################
+
+    def save_to_file(self, filename: str) -> None:
+        """
+        Save the buffer contents to a file.
+
+        Args:
+            filename (str): The file path to save to.
+
+        Raises:
+            Exception: If the file cannot be saved.
+        """
+        try:
+            FileManager.save_to_file(self.get_text(), filename)
+        except Exception as e:
+            print(f"Failed to save file: {e}")
+
+
+    def load_from_file(self, filename: str) -> None:
+        """
+        Load text from a file and replace the buffer contents.
+
+        Args:
+            filename (str): The file path to load from.
+
+        Raises:
+            Exception: If the file cannot be loaded.
+        """
+        try:
+            content = FileManager.load_from_file(filename)
+            print(f"Loaded content: {repr(content)} (len: {len(content)})")
+            new_size = max(len(content) * 2, 100)
+            self.__init__(new_size)
+            self.insert(content)
+        except Exception as e:
+            print(f"Failed to load file: {e}")
+

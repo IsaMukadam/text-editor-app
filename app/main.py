@@ -77,6 +77,17 @@ def main() -> None:
         elif command == "redo":
             editor.redo()
 
+        # If save
+        elif command == "save":
+            filename = input("Enter filename to save: ").strip()
+            editor.save_to_file(filename)
+
+        # If load
+        elif command == "load":
+            filename = input("Enter filename to load: ").strip()
+            editor.load_from_file(filename)
+
+        # If help
         elif command == "help":
             print("""
 Available commands:
@@ -89,6 +100,8 @@ Available commands:
     get                    Show full text
     undo                   Undo last change
     redo                   Redo last undone change
+    save                   Save the text in a file
+    load                   Load a file from a file
     exit                   Quit editor      
                   """)
             
